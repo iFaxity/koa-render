@@ -4,6 +4,9 @@
   "main": "index.js",
   "author": "Christian Norrman <christian@faxity.se>",
   "license": "MIT",
+  "engines": {
+    "node": ">=6"
+  },
   "dependencies": {
     "koa-send": "^5.0.0",
     "pug": "^2.0.3"
