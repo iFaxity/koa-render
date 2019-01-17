@@ -1,5 +1,9 @@
+const path = require('path');
 const pug = require('pug');
 const send = require('koa-send');
+
+const PUG_EXT = ['pug', 'jade'];
+const HTML_EXT = ['html', 'htm'];
 const DEFAULT_OPTS = {
   ext: 'pug',
   globals: {
@@ -8,22 +12,13 @@ const DEFAULT_OPTS = {
   },
 };
 
-// Use pug to render file
-function renderPug(ctx, filepath, locals) {
-  try {
-    ctx.body = pug.renderFile(filepath, locals);
-    ctx.type = 'html';
-  } catch (ex) {
-    throw ex;
-  }
-}
-
 /**
- * @param root - Root folder for all view files
- * @param [options] - Optional options
+ * @param {String} root - Root folder for all view files
+ * @param {Object} [options] - Optional options
+ * @returns {Function} - Middleware function
  */
 module.exports = function (root, options = {}) {
-  const opts = Object.assign({}, DEFAULT_OPTS, options);
+  const { ext, globals } = Object.assign({}, DEFAULT_OPTS, options);
 
   return async (ctx, next) => {
     if (ctx.render) {
@@ -31,21 +26,28 @@ module.exports = function (root, options = {}) {
     }
 
     ctx.render = ctx.response.render = async (filename, locals = {}) => {
-      // Read file data
-      const ext = opts.ext;
-      const filepath = `${filename}.${ext}`;
+      // Default the extension to global extension
+      let extname = path.extname(filename);
+      if (extname.length < 2) {
+        extname = `.${ext}`;
+      }
 
-      // Render file as html
-      if (ext == 'pug' || ext == 'jade') {
-        Object.assign(locals, opts.globals, ctx.state = {});
-        locals.filename = filename;
-        locals.basedir = root;
 
-        return renderPug(ctx, `${root}/${filepath}`, locals);
-      } else if (ext == 'html' || ext == 'htm') {
+      // Render the file
+      const filepath = filename + extname;
+
+      if (PUG_EXT.includes(ext)) {
+        Object.assign(locals, globals, ctx.state = {}, {
+          filename,
+          basedir: root,
+        });
+
+        ctx.body = pug.renderFile(`${root}/${filepath}`, locals);
+        ctx.type = 'html';
+      } else if (HTML_EXT.includes(ext)) {
         return send(ctx, filepath, { root });
       } else {
-        throw new Error('ctx.render no engine for that extension');
+        throw new Error(`ctx.render no engine for the extension '${extname}'`);
       }
     };
 

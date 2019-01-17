@@ -32,6 +32,7 @@ const render = require('@ifaxity/koa-render');
 
 // or whatever folder you use for your views
 app.use(render(__dirname + '/views'), {
+  ext: 'pug',
   globals: {
     title: 'Default title',
   }
@@ -39,7 +40,7 @@ app.use(render(__dirname + '/views'), {
 
 
 // Example route
-app.get(async ctx => {
+app.use(async ctx => {
   // Render state object
   ctx.state = {
     title: 'Index page title',
@@ -49,7 +50,14 @@ app.get(async ctx => {
     foo: 'bar',
   });
 });
+
+// You can also switch between .pug and .html files like this
+// As the option 'ext' only specifies the default extension
+app.use(async ctx => {
+  await ctx.render('index.html');
+});
 ```
+
 
 -----------------
 ## About the variables
@@ -114,7 +122,7 @@ Then you need to add it as a middleware before your routes in your koa app.
 
 * `root {String}` - The path to the view files root directory
 * `opts {Object}` - Optional options
-  * `opts.ext {String}` - Extension to use. html, pug & jade is supported
+  * `opts.ext {String}` - Extension to use. html, pug & jade is supported. Defaults to pug
   * `opts.globals {Object}` - Global variables for the render function
 
   When using .html files the variables get ignored because it just render the html file directly, great when you have static html files and dynamic content with pug.
