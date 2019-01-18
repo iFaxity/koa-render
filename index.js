@@ -1,4 +1,3 @@
-const path = require('path');
 const pug = require('pug');
 const send = require('koa-send');
 
@@ -25,27 +24,21 @@ module.exports = function (root, options = {}) {
       return await next();
     }
 
-    ctx.render = ctx.response.render = async (filename, locals = {}) => {
+    ctx.render = ctx.response.render = async (name, locals = {}) => {
       // Default the extension to global extension
-      let extname = path.extname(filename);
-      if (extname.length < 2) {
-        extname = `.${ext}`;
-      }
+      let [filename, extname] = `${name}.${ext}`.split('.');
+      filename += `.${extname}`;
 
-
-      // Render the file
-      const filepath = filename + extname;
-
-      if (PUG_EXT.includes(ext)) {
+      if (PUG_EXT.includes(extname)) {
         Object.assign(locals, globals, ctx.state = {}, {
           filename,
           basedir: root,
         });
 
-        ctx.body = pug.renderFile(`${root}/${filepath}`, locals);
+        ctx.body = pug.renderFile(`${root}/${filename}`, locals);
         ctx.type = 'html';
-      } else if (HTML_EXT.includes(ext)) {
-        return send(ctx, filepath, { root });
+      } else if (HTML_EXT.includes(extname)) {
+        return send(ctx, filename, { root });
       } else {
         throw new Error(`ctx.render no engine for the extension '${extname}'`);
       }
