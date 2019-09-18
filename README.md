@@ -23,7 +23,7 @@ or if you use yarn
 
 To use the module just require it like this
 
-`const jwt = require('@ifaxity/jwt');`
+`const jwt = require('@ifaxity/koa-render');`
 
 And then you need to add it to your koa server like this:
 
